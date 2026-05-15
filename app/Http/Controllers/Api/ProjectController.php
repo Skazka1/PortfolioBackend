@@ -15,6 +15,8 @@ use App\Models\Like;
 use App\Models\Project;
 use App\Models\User;
 use App\Support\ProjectDescriptionHtml;
+use App\Support\ProjectMediaStorage;
+use App\Support\ProjectPreviewStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -165,24 +167,35 @@ class ProjectController extends Controller
         return new ProjectResource($project);
     }
 
+    /**
+     * Создание проекта: валидация формы, проверка полномочий, загрузка превью (S3/public), запись в БД.
+     */
     public function store(StoreProjectRequest $request): ProjectResource
     {
         $this->authorize('create', Project::class);
+
         $user = $request->user();
-        $d = $request->validated();
         if (! $user) {
             abort(401);
         }
+
+        $d = $request->validated();
         $isAdmin = $user->isAdmin();
         if (! $isAdmin) {
             $d['is_published'] = $d['is_published'] ?? true;
         } else {
             $d['is_published'] = (bool) ($d['is_published'] ?? true);
         }
+
+        $previewPath = $request->hasFile('preview_image')
+            ? ProjectPreviewStorage::store($request->file('preview_image'))
+            : null;
+
         $project = Project::query()->create([
             'title' => $d['title'],
             'description' => '',
             'github_url' => $d['github_url'] ?? null,
+            'preview_image_path' => $previewPath,
             'technologies' => $this->technologiesWithMergedEventGenre($d['technologies'] ?? [], $d['campus_event_id'] ?? null),
             'is_published' => $d['is_published'],
             'supervisor_user_id' => $d['supervisor_user_id'] ?? null,
@@ -192,11 +205,11 @@ class ProjectController extends Controller
         $project->forceFill([
             'description' => ProjectDescriptionHtml::sanitize($d['description'], $project->id),
         ])->save();
-        $collab = $d['collaborator_ids'] ?? [$user->id];
+        $collab = $d['collaborator_ids'] ?? ($isAdmin ? [] : [$user->id]);
         if (! is_array($collab)) {
-            $collab = [$user->id];
+            $collab = $isAdmin ? [] : [$user->id];
         }
-        if (! $user->isAdmin() && $user->isStudent() && $collab === []) {
+        if (! $isAdmin && $user->isStudent() && $collab === []) {
             $collab = [$user->id];
         }
         $project->syncStudents(array_map('intval', $collab), $isAdmin, $user);
@@ -268,12 +281,9 @@ class ProjectController extends Controller
         if (! $user) {
             abort(401);
         }
-        $disk = Project::projectMediaDisk();
         $file = $request->file('image');
-        $ext = $file->getClientOriginalExtension() ?: 'jpg';
-        $dir = 'project-inline/'.$project->id;
-        $path = $file->storeAs($dir, (string) Str::uuid().'.'.$ext, $disk);
-        $url = Storage::disk($disk)->url($path);
+        $path = ProjectMediaStorage::storeUploaded($file, 'project-inline/'.$project->id);
+        $url = Storage::disk(Project::projectMediaDisk())->url($path);
 
         return response()->json(['data' => ['url' => $url]]);
     }
@@ -341,17 +351,8 @@ class ProjectController extends Controller
         if (! $user) {
             abort(401);
         }
-        $disk = Project::projectMediaDisk();
-        $file = $request->file('image');
-        $ext = $file->getClientOriginalExtension() ?: 'jpg';
-        $path = $file->storeAs(
-            'project-previews',
-            (string) Str::uuid().'.'.$ext,
-            $disk
-        );
-        if ($project->preview_image_path) {
-            Storage::disk($disk)->delete($project->preview_image_path);
-        }
+        $path = ProjectPreviewStorage::store($request->file('image'));
+        ProjectPreviewStorage::delete($project->preview_image_path);
         $project->update(['preview_image_path' => $path]);
         $project->load(['students', 'supervisor', 'createdBy', 'campusEvent']);
         $project->loadCount('likes');
@@ -372,14 +373,12 @@ class ProjectController extends Controller
         if (! $user) {
             abort(401);
         }
-        $disk = Project::projectMediaDisk();
         $paths = $project->gallery_paths ?? [];
         foreach ($request->file('images', []) as $file) {
             if (count($paths) >= 24) {
                 break;
             }
-            $ext = $file->getClientOriginalExtension() ?: 'jpg';
-            $paths[] = $file->storeAs('project-gallery', (string) Str::uuid().'.'.$ext, $disk);
+            $paths[] = ProjectMediaStorage::storeUploaded($file, 'project-gallery');
         }
         $project->gallery_paths = array_values($paths);
         $project->save();

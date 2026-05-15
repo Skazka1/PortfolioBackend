@@ -31,13 +31,11 @@ return [
     | Project preview & gallery disk
     |--------------------------------------------------------------------------
     |
-    | Must be a disk whose files are reachable at APP_URL + /storage/... after
-    | `php artisan storage:link` (typically "public"). The default "local" disk
-    | stores under app/private and serves URLs only with a valid signature.
+    | `public` — локально (storage:link). `s3` — Yandex Object Storage / AWS (AWS_* в .env).
     |
     */
 
-    'project_media_disk' => env('PROJECT_MEDIA_DISK', 'public'),
+    'project_media_disk' => env('PROJECT_MEDIA_DISK', 's3'),
 
     /*
     |--------------------------------------------------------------------------
@@ -79,9 +77,15 @@ return [
             'bucket' => env('AWS_BUCKET'),
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
-            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'use_path_style_endpoint' => filter_var(env('AWS_USE_PATH_STYLE_ENDPOINT', false), FILTER_VALIDATE_BOOLEAN),
             'throw' => false,
             'report' => false,
+            'options' => [
+                'verify' => env('AWS_SSL_VERIFY', false),
+            ],
+            'http' => [
+                'verify' => env('AWS_SSL_VERIFY', false),
+            ],
         ],
 
     ],

@@ -3,14 +3,18 @@
 namespace App\Http\Requests\Project;
 
 use App\Enums\UserRole;
+use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
 class StoreProjectRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $user = $this->user();
+
+        return $user !== null && $user->can('create', Project::class);
     }
 
     /**
@@ -41,6 +45,14 @@ class StoreProjectRequest extends FormRequest
                 'nullable',
                 'integer',
                 Rule::exists('events', 'id')->where(fn ($q) => $q->where('date_time', '<', now())),
+            ],
+            'preview_image' => [
+                'nullable',
+                File::image()
+                    ->max(5120)
+                    ->dimensions(
+                        Rule::dimensions()->maxWidth(8000)->maxHeight(8000)
+                    ),
             ],
         ];
     }
