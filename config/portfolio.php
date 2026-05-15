@@ -2,6 +2,11 @@
 
 return [
     /*
+    | Email главного администратора (создаётся сидером, удаление запрещено).
+    */
+    'primary_admin_email' => env('PRIMARY_ADMIN_EMAIL', 'admin@example.com'),
+
+    /*
     | Жанры мероприятия для проектов портфолио
     */
     'event_genres' => [

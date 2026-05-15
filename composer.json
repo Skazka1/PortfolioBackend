@@ -26,18 +26,8 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/",
-            "League\\Flysystem\\AwsS3V3\\": "vendor/league/flysystem-aws-s3-v3/",
-            "Aws\\": "vendor/aws/aws-sdk-php/src/",
-            "JmesPath\\": "vendor/mtdowling/jmespath.php/src/"
-        },
-        "classmap": [
-            "vendor/aws/aws-crt-php/src/"
-        ],
-        "files": [
-            "vendor/aws/aws-sdk-php/src/functions.php",
-            "vendor/mtdowling/jmespath.php/src/JmesPath.php"
-        ]
+            "Database\\Seeders\\": "database/seeders/"
+        }
     },
     "autoload-dev": {
         "psr-4": {

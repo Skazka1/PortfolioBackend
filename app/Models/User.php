@@ -56,6 +56,13 @@ class User extends Authenticatable
         return $this->role === UserRole::Admin;
     }
 
+    public function isPrimaryAdmin(): bool
+    {
+        $primaryEmail = (string) config('portfolio.primary_admin_email', 'admin@example.com');
+
+        return strcasecmp($this->email, $primaryEmail) === 0;
+    }
+
     public function isTeacher(): bool
     {
         return $this->role === UserRole::Teacher;

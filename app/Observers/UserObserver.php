@@ -10,6 +10,10 @@ class UserObserver
 {
     public function deleting(User $user): void
     {
+        if ($user->isPrimaryAdmin()) {
+            throw new \LogicException('Primary admin account cannot be deleted.');
+        }
+
         if ($user->avatar_path) {
             Storage::disk((string) config('filesystems.avatar_disk', 'public'))->delete($user->avatar_path);
         }

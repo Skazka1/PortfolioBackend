@@ -24,6 +24,7 @@ class UserResource extends JsonResource
             'avatar_url' => $u->avatar_path ? $u->avatar_url : null,
             'bio' => $u->bio,
             'is_active' => (bool) $u->is_active,
+            'is_primary_admin' => $u->isPrimaryAdmin(),
             'email_verified_at' => $u->email_verified_at?->toIso8601String(),
             'created_at' => $u->created_at?->toIso8601String(),
         ];

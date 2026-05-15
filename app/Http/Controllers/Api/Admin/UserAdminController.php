@@ -91,6 +91,12 @@ class UserAdminController extends Controller
 
     public function destroy(Request $request, User $user): JsonResponse
     {
+        if ($user->isPrimaryAdmin()) {
+            return response()->json([
+                'message' => __('portfolio.cannot_delete_primary_admin'),
+            ], 422);
+        }
+
         $this->authorize('deleteAsAdmin', $user);
         $user->delete();
 

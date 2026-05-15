@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         $allUsers = $teachers->merge($students);
-        $admin = User::query()->where('email', 'admin@example.com')->first();
+        $admin = User::query()->where('email', config('portfolio.primary_admin_email'))->first();
 
         foreach ($students as $student) {
             for ($j = 0; $j < 2; $j++) {
@@ -94,7 +94,7 @@ class DatabaseSeeder extends Seeder
     private function seedAdminUser(): void
     {
         User::query()->updateOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => (string) config('portfolio.primary_admin_email', 'admin@example.com')],
             [
                 'name' => 'Главный админ',
                 'role' => UserRole::Admin,
