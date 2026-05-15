@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('role', 20)->default('student')->index();
             $table->string('course', 32)->nullable()->index();
             $table->string('group', 32)->nullable()->index();
-            $table->unsignedSmallInteger('year_of_graduation')->nullable()->index();
             $table->string('avatar_path')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->rememberToken();

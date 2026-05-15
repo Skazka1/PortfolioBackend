@@ -18,8 +18,11 @@
     <h1>{{ $project->title }}</h1>
     <div class="meta">
         @if($project->is_published) Опубликован @else Черновик @endif
+        @if($project->supervisor)
+            | Научный руководитель: {{ $project->supervisor->name }}
+        @endif
         @if(count($project->technologies ?? []))
-            | Технологии: {{ implode(', ', $project->technologies) }}
+            | Жанры: {{ implode(', ', $project->technologies) }}
         @endif
     </div>
     <h2>Описание</h2>

@@ -21,6 +21,11 @@ class UserPolicy
         return $auth->isAdmin();
     }
 
+    public function deleteAsAdmin(User $auth, User $model): bool
+    {
+        return $auth->isAdmin() && (int) $auth->id !== (int) $model->id;
+    }
+
     public function viewInDirectory(?User $user, User $model): bool
     {
         return $model->isStudent() && $model->is_active;

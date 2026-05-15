@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -18,8 +21,11 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $github_url
  * @property string|null $preview_image_path
  * @property array<int, string>|null $gallery_paths
- * @property array<int, string> $technologies
+ * @property array<int, string> $technologies жанры мероприятия
  * @property bool $is_published
+ * @property int|null $supervisor_user_id
+ * @property int|null $created_by_user_id
+ * @property int|null $campus_event_id
  * @property int|null $likes_count
  * @property bool|null $liked_by_me
  * @property string|null $preview_image_url
@@ -32,7 +38,7 @@ class Project extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'description', 'github_url', 'preview_image_path', 'gallery_paths', 'technologies', 'is_published',
+        'title', 'description', 'github_url', 'preview_image_path', 'gallery_paths', 'technologies', 'is_published', 'supervisor_user_id', 'created_by_user_id', 'campus_event_id',
     ];
 
     public static function projectMediaDisk(): string
@@ -61,6 +67,24 @@ class Project extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_user', 'project_id', 'user_id');
+    }
+
+    /** Пользователь, создавший карточку проекта. */
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /** Руководитель проекта — преподаватель из списка активных пользователей. */
+    public function supervisor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'supervisor_user_id');
+    }
+
+    /** Связанное кампусное событие (обычно уже прошедшее). */
+    public function campusEvent(): BelongsTo
+    {
+        return $this->belongsTo(CampusEvent::class, 'campus_event_id');
     }
 
     public function likes(): HasMany
@@ -107,14 +131,14 @@ class Project extends Model
      */
     public function syncStudents(array $userIds, bool $isAdmin, User $editor): void
     {
-        $allStudents = User::query()->where('role', \App\Enums\UserRole::Student)
+        $allStudents = User::query()->where('role', UserRole::Student)
             ->whereIn('id', $userIds)
             ->pluck('id')
             ->map(fn (int $id) => (int) $id)
             ->all();
 
         if (count($allStudents) !== count($userIds)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'collaborator_ids' => 'Каждый выбранный участник должен существовать и иметь роль студента.',
             ]);
         }

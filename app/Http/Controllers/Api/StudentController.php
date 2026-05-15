@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
-use App\Http\Resources\StudentCardResource;
 use App\Http\Resources\StudentBriefResource;
+use App\Http\Resources\StudentCardResource;
 use App\Models\Like;
 use App\Models\Project;
 use App\Models\User;
@@ -23,10 +23,6 @@ class StudentController extends Controller
             ->where('is_active', true)
             ->when($request->query('course'), fn ($b, $course) => $b->where('course', (string) $course))
             ->when($request->query('group'), fn ($b, $group) => $b->where('group', (string) $group))
-            ->when(
-                $request->query('year_of_graduation') !== null && $request->query('year_of_graduation') !== '',
-                fn ($b) => $b->where('year_of_graduation', (int) $request->query('year_of_graduation'))
-            )
             ->when($request->filled('q'), function ($b) use ($request) {
                 $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], (string) $request->query('q')).'%';
                 $b->where('name', 'ilike', $term);
@@ -39,9 +35,11 @@ class StudentController extends Controller
             });
         }
 
+        $perPage = min(max((int) $request->query('per_page', 12), 1), 50);
+
         $paginator = $q
             ->orderBy('name')
-            ->paginate((int) $request->query('per_page', 12))
+            ->paginate($perPage)
             ->withQueryString();
 
         $viewer = $request->user();
@@ -78,7 +76,7 @@ class StudentController extends Controller
         $projects = Project::query()
             ->whereIn('projects.id', $ids)
             ->visibleFor($viewer)
-            ->with('students')
+            ->with(['students', 'supervisor', 'createdBy', 'campusEvent'])
             ->withCount('likes')
             ->orderByDesc('projects.id')
             ->get();

@@ -2,25 +2,23 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class StudentBriefResource extends JsonResource
+class TeacherBriefResource extends JsonResource
 {
     /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
+        /** @var User $u */
         $u = $this->resource;
 
         return [
             'id' => $u->id,
             'name' => $u->name,
-            'course' => $u->course,
-            'group' => $u->group,
-            'avatar_url' => $u->avatar_path ? $u->avatar_url : null,
-            'bio' => $u->bio,
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Event;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreEventRequest extends FormRequest
 {
@@ -19,9 +20,11 @@ class StoreEventRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:20000'],
+            'description' => ['required', 'string', 'max:20000'],
             'date_time' => ['required', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
+            'genres' => ['required', 'array', 'min:1'],
+            'genres.*' => ['string', 'max:64', Rule::in(config('portfolio.event_genres', []))],
         ];
     }
 }

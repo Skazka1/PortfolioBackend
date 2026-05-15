@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Event;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventRequest extends FormRequest
 {
@@ -22,6 +23,8 @@ class UpdateEventRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:20000'],
             'date_time' => ['sometimes', 'date'],
             'location' => ['nullable', 'string', 'max:255'],
+            'genres' => ['sometimes', 'nullable', 'array'],
+            'genres.*' => ['string', 'max:64', Rule::in(config('portfolio.event_genres', []))],
         ];
     }
 }

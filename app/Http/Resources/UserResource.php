@@ -21,7 +21,6 @@ class UserResource extends JsonResource
             'role' => $u->role?->value,
             'course' => $u->course,
             'group' => $u->group,
-            'year_of_graduation' => $u->year_of_graduation,
             'avatar_url' => $u->avatar_path ? $u->avatar_url : null,
             'bio' => $u->bio,
             'is_active' => (bool) $u->is_active,

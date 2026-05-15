@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\UserInvitedNotification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Password;
@@ -18,12 +19,32 @@ class UserAdminController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', User::class);
-        $q = User::query()->orderBy('role')->orderBy('name');
+        $q = User::query()
+            ->orderBy('role')
+            ->orderBy('name');
         if ($request->query('role')) {
             $q->where('role', $request->query('role'));
         }
+        if ($request->query('course')) {
+            $q->where('course', (string) $request->query('course'));
+        }
+        if ($request->query('group')) {
+            $q->where('group', (string) $request->query('group'));
+        }
+        if ($request->filled('q')) {
+            $term = '%'.str_replace(['%', '_'], ['\\%', '\\_'], (string) $request->query('q')).'%';
+            $q->where(function ($builder) use ($term) {
+                $builder
+                    ->where('name', 'ilike', $term)
+                    ->orWhere('email', 'ilike', $term);
+            });
+        }
 
-        return UserResource::collection($q->paginate(30));
+        $perPage = min(max((int) $request->query('per_page', 30), 1), 50);
+
+        return UserResource::collection(
+            $q->paginate($perPage)->withQueryString()
+        );
     }
 
     public function store(StoreUserRequest $request): UserResource
@@ -34,14 +55,15 @@ class UserAdminController extends Controller
             'name' => $d['name'],
             'email' => $d['email'],
             'role' => UserRole::from($d['role']),
-            'password' => null,
+            'password' => $d['password'] ?? null,
             'course' => $d['course'] ?? null,
             'group' => $d['group'] ?? null,
-            'year_of_graduation' => $d['year_of_graduation'] ?? null,
             'is_active' => true,
         ]);
-        $token = Password::broker()->getRepository()->create($user);
-        $user->notify(new UserInvitedNotification($token));
+        if (($d['password'] ?? null) === null) {
+            $token = Password::broker()->getRepository()->create($user);
+            $user->notify(new UserInvitedNotification($token));
+        }
 
         return new UserResource($user);
     }
@@ -55,7 +77,7 @@ class UserAdminController extends Controller
             'role' => ['sometimes', Rule::in([UserRole::Admin->value, UserRole::Teacher->value, UserRole::Student->value])],
             'course' => ['nullable', 'string', 'max:32'],
             'group' => ['nullable', 'string', 'max:32'],
-            'year_of_graduation' => ['nullable', 'integer', 'min:2000', 'max:2100'],
+            'password' => ['nullable', 'string', 'min:8'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
         if (isset($d['role'])) {
@@ -65,5 +87,13 @@ class UserAdminController extends Controller
         $user->save();
 
         return new UserResource($user->fresh());
+    }
+
+    public function destroy(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('deleteAsAdmin', $user);
+        $user->delete();
+
+        return response()->json(['ok' => true]);
     }
 }

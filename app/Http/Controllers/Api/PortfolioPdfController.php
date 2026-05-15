@@ -31,6 +31,7 @@ class PortfolioPdfController extends Controller
         $projects = Project::query()
             ->whereIn('projects.id', $ids)
             ->visibleFor($viewer)
+            ->with('supervisor')
             ->orderBy('projects.id')
             ->get();
 
@@ -53,11 +54,20 @@ class PortfolioPdfController extends Controller
         $this->authorize('importProjectFromPdf', $user);
         $path = $request->file('pdf')->store('tmp-imports', 'local');
         $full = storage_path('app/'.$path);
+        $galleryPaths = [];
         try {
             $data = $extractor->extractFromPath($full);
         } catch (\Throwable $e) {
-            Storage::disk('local')->delete($path);
-            throw $e;
+            try {
+                $galleryPaths = $extractor->convertPdfToGalleryImages($full);
+                $data = [
+                    'title' => pathinfo($request->file('pdf')->getClientOriginalName() ?: 'Скан PDF', PATHINFO_FILENAME),
+                    'description' => 'Проект создан из сканированного PDF. Страницы добавлены в галерею.',
+                ];
+            } catch (\Throwable) {
+                Storage::disk('local')->delete($path);
+                throw $e;
+            }
         }
         Storage::disk('local')->delete($path);
 
@@ -65,11 +75,15 @@ class PortfolioPdfController extends Controller
             'title' => $data['title'],
             'description' => $data['description'],
             'github_url' => null,
+            'gallery_paths' => $galleryPaths,
             'technologies' => [],
             'is_published' => false,
+            'supervisor_user_id' => null,
+            'created_by_user_id' => $user->id,
+            'campus_event_id' => null,
         ]);
         $project->syncStudents([$user->id], false, $user);
-        $project->load('students');
+        $project->load(['students', 'supervisor', 'createdBy', 'campusEvent']);
         $project->loadCount('likes');
         $project->setAttribute('liked_by_me', false);
 
@@ -79,6 +93,7 @@ class PortfolioPdfController extends Controller
     public function downloadProject(Request $request, Project $project): Response
     {
         $this->authorize('downloadPdf', $project);
+        $project->loadMissing('supervisor');
 
         $pdf = Pdf::loadView('pdf.project', [
             'project' => $project,

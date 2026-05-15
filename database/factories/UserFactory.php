@@ -34,7 +34,6 @@ class UserFactory extends Factory
             'role' => UserRole::Student,
             'course' => (string) rand(1, 4),
             'group' => (string) rand(1, 4).'-'.rand(1, 2),
-            'year_of_graduation' => (int) now()->addYears(rand(1, 3))->format('Y'),
             'bio' => fake('ru_RU')->optional(0.55)->realTextBetween(80, 320),
             'is_active' => true,
         ];

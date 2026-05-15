@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\PortfolioPdfController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\StudentController;
+use App\Http\Controllers\Api\TeacherDirectoryController;
 use App\Http\Controllers\Api\TechnologyController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,10 @@ Route::get('/students', [StudentController::class, 'index']);
 Route::get('/students/{student}', [StudentController::class, 'show']);
 
 Route::get('/events', [CampusEventController::class, 'index']);
+Route::get('/events/{event}', [CampusEventController::class, 'show']);
+Route::get('/events/{event}/projects', [CampusEventController::class, 'projects']);
+Route::get('/projects/filters', [ProjectController::class, 'publishedFeedFilters']);
+Route::get('/projects', [ProjectController::class, 'publishedFeed']);
 Route::get('/projects/{project}', [ProjectController::class, 'show']);
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -26,6 +31,7 @@ Route::post('/reset-password', [PasswordController::class, 'reset']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/teachers', [TeacherDirectoryController::class, 'index']);
 
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
@@ -53,4 +59,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/users', [UserAdminController::class, 'index']);
     Route::post('/admin/users', [UserAdminController::class, 'store']);
     Route::patch('/admin/users/{user}', [UserAdminController::class, 'update']);
+    Route::delete('/admin/users/{user}', [UserAdminController::class, 'destroy']);
 });

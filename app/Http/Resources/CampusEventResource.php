@@ -20,6 +20,7 @@ class CampusEventResource extends JsonResource
             'description' => $e->description,
             'date_time' => $e->date_time->toIso8601String(),
             'location' => $e->location,
+            'genres' => $e->genres ?? [],
             'created_by' => $this->when(
                 $e->relationLoaded('createdBy') && $e->createdBy,
                 fn () => new UserResource($e->createdBy)

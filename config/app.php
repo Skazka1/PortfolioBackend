@@ -57,6 +57,7 @@ return [
     'frontend_url' => rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/'),
 
     'pdf_to_text_path' => env('PDFTOTEXT_PATH'),
+    'pdf_to_image_path' => env('PDFTOPPM_PATH'),
 
     /*
     |--------------------------------------------------------------------------
@@ -82,7 +83,7 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'ru'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

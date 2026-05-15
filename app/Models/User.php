@@ -8,6 +8,7 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens;
 use Random\RandomException;
 
 /**
@@ -25,20 +27,19 @@ use Random\RandomException;
  * @property UserRole $role
  * @property string|null $course
  * @property string|null $group
- * @property int|null $year_of_graduation
  * @property string|null $avatar_path
  * @property string|null $bio
  * @property bool $is_active
  * @property Carbon|null $email_verified_at
  * @property string|null $avatar_url
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Project> $projects
+ * @property-read Collection<int, Project> $projects
  */
-#[Fillable(['name', 'email', 'password', 'role', 'course', 'group', 'year_of_graduation', 'avatar_path', 'bio', 'is_active'])]
+#[Fillable(['name', 'email', 'password', 'role', 'course', 'group', 'avatar_path', 'bio', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use CanResetPassword, HasFactory, Notifiable;
+    use CanResetPassword, HasApiTokens, HasFactory, Notifiable;
 
     protected function casts(): array
     {

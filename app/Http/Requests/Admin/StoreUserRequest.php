@@ -24,7 +24,7 @@ class StoreUserRequest extends FormRequest
             'role' => ['required', Rule::in([UserRole::Teacher->value, UserRole::Student->value])],
             'course' => ['nullable', 'string', 'max:32', 'required_if:role,student'],
             'group' => ['nullable', 'string', 'max:32', 'required_if:role,student'],
-            'year_of_graduation' => ['nullable', 'integer', 'min:2000', 'max:2100', 'required_if:role,student'],
+            'password' => ['nullable', 'string', 'min:8'],
         ];
     }
 }

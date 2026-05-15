@@ -19,7 +19,6 @@ class StudentCardResource extends JsonResource
             'name' => $u->name,
             'course' => $u->course,
             'group' => $u->group,
-            'year_of_graduation' => $u->year_of_graduation,
             'avatar_url' => $u->avatar_path ? $u->avatar_url : null,
             'last_projects' => ProjectPreviewResource::collection(
                 $this->whenLoaded('lastProjects', fn () => $u->lastProjects)

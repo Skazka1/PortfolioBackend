@@ -15,7 +15,6 @@
     <div class="meta">
         @if($user->course) Курс: {{ $user->course }} @endif
         @if($user->group) | Группа: {{ $user->group }} @endif
-        @if($user->year_of_graduation) | Год выпуска: {{ $user->year_of_graduation }} @endif
     </div>
     @if($user->bio)
         <h2>Введение</h2>
@@ -24,7 +23,10 @@
     <h2>Проекты</h2>
     @foreach($projects as $p)
         <h2 style="border:none; margin-top: 12px;">{{ $p->title }}</h2>
-        <p><strong>Технологии:</strong> {{ implode(', ', $p->technologies ?? []) }}</p>
+        @if($p->supervisor)
+            <p style="margin: 2px 0; font-size: 10pt; color: #444;"><strong>Научный руководитель:</strong> {{ $p->supervisor->name }}</p>
+        @endif
+        <p><strong>Жанры мероприятия:</strong> {{ implode(', ', $p->technologies ?? []) }}</p>
         <p style="white-space: pre-wrap;">{{ strip_tags($p->description ?? '') }}</p>
         @if($p->github_url)
             <p><a href="{{ $p->github_url }}">GitHub</a></p>

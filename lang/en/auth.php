@@ -14,6 +14,9 @@ return [
     */
 
     'failed' => 'These credentials do not match our records.',
+    'email_not_found' => 'No account was found for this email address.',
+    'password_incorrect' => 'Wrong password.',
+    'account_unavailable' => 'Sign-in is not available for this account.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
 
