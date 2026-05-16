@@ -28,7 +28,10 @@ class AppServiceProvider extends ServiceProvider
     {
         User::observe(UserObserver::class);
         Project::observe(ProjectObserver::class);
-        URL::forceScheme('https');
+
+        if (config('app.force_https')) {
+            URL::forceScheme('https');
+        }
 
         Route::bind('student', function (string $value) {
             return User::query()

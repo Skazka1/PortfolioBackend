@@ -54,6 +54,14 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    /*
+    | Редирект HTTP→HTTPS и URL::forceScheme('https'). Если FORCE_HTTPS не задан,
+    | включается при APP_ENV=production. Для nginx за прокси задайте X-Forwarded-Proto.
+    */
+    'force_https' => env('FORCE_HTTPS') !== null
+        ? filter_var(env('FORCE_HTTPS'), FILTER_VALIDATE_BOOLEAN)
+        : env('APP_ENV', 'production') === 'production',
+
     'frontend_url' => rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/'),
 
     'pdf_to_text_path' => env('PDFTOTEXT_PATH'),
