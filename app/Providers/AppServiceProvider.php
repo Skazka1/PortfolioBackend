@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Observers\ProjectObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,10 +27,6 @@ class AppServiceProvider extends ServiceProvider
     {
         User::observe(UserObserver::class);
         Project::observe(ProjectObserver::class);
-
-        if (config('app.force_https')) {
-            URL::forceScheme('https');
-        }
 
         Route::bind('student', function (string $value) {
             return User::query()

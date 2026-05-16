@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\ForceHttps;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,8 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prependToGroup('web', ForceHttps::class);
-        $middleware->prependToGroup('api', ForceHttps::class);
         $middleware->alias([
             'guest' => RedirectIfAuthenticated::class,
         ]);
